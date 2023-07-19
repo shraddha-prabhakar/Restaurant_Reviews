@@ -1,0 +1,72 @@
+Restaurant reviews
+import pandas as pd
+s = ['Welcome to our restaurant.','Avail all the Diwali offers now!', 'Please do visit us again.']
+df= pd.read_csv('/content/Restaurant_Reviews.tsv', sep='\t')
+df
+df.info()
+df.isnull().sum()
+df['Review'].value_counts().plot(kind='bar')
+df['Liked'].value_counts().plot(kind='bar')
+x = df['Review'].values
+y = df['Liked'].values
+from sklearn.model_selection import train_test_split 
+x_train,x_test,y_train,y_test = train_test_split(x,y,random_state = 0)
+df.shape
+x_train.shape
+x_test.shape
+from sklearn.feature_extraction.text import CountVectorizer 
+vect = CountVectorizer(stop_words = 'english')
+op = vect.fit_transform(s).toarray() 
+op
+vect = CountVectorizer(stop_words='english')
+x_train_vect = vect.fit_transform(x_train)
+x_test_vect = vect.transform(x_test) 
+from sklearn.svm import SVC 
+model = SVC()
+model.fit(x_train_vect,y_train)
+x_train_vect.toarray() 
+from sklearn.pipeline import make_pipeline 
+model2 = make_pipeline(CountVectorizer(),SVC())
+
+model2.fit(x_train,y_train)
+y_pred2 = model2.predict(x_test)
+y_pred2
+y_pred = model.predict(x_test_vect)
+y_pred
+y_pred = model.predict(x_test_vect)
+y_pred
+accuracy_score(y_pred2,y_test)
+from sklearn.naive_bayes import MultinomialNB
+model3 = MultinomialNB()
+model3.fit(x_train_vect,y_train)
+y_pred3 = model3.predict(x_test_vect)
+y_pred3
+accuracy_score(y_pred3,y_test)
+from sklearn.pipeline import make_pipeline 
+model4 = make_pipeline(CountVectorizer(),MultinomialNB())
+
+model4.fit(x_train,y_train)
+y_pred4 = model4.predict(x_test)
+y_pred4
+accuracy_score(y_pred4,y_test)
+import joblib 
+joblib.dump(model4,'Review')
+import joblib
+reload_model = joblib.load('Review')
+reload_model.predict(['Please rate us'])
+reload_model.predict(['Offers'])
+!pip install streamlit --quiet 
+pip install prompt_toolkit
+%%writefile app.py 
+import streamlit as st 
+import joblib 
+st.title("SPAM TEXT/EMAIL CLASSIFICATION")
+reload_model = joblib.load('spam-email')
+
+ip = st.text_input("Enter the email/text :")
+op = reload_model.predict([ip])
+
+# review = ['Positive','Negative'] #you can add this line extra to print the text as the output
+if st.button('PREDICT'):
+  st.title(op[0])
+!streamlit run app.py & npx localtunnel --port 8501
